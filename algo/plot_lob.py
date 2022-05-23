@@ -11,7 +11,8 @@ def plot_limit_order_book(lob_dict):
     plt.fill_between(lob_dict['asks_prices'], lob_dict['asks_cumsum_qtys'], color='red', alpha=0.3)
     plt.fill_between(lob_dict['bids_prices'], lob_dict['bids_cumsum_qtys'], color='green', alpha=0.3)
 
-
+    ax.set_xlim(lob_dict['bids_prices'][-1], lob_dict['asks_prices'][-1])
+    ax.set_ylim(bottom=0)
     ax.grid()
     ax.legend()
     plt.title('Limit Order Book Plot')
