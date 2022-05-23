@@ -10,6 +10,6 @@ def plot_limit_order_book(lob_dict):
     ax.grid()
     ax.legend()
     plt.title('Limit Order Book Plot')
-    ax.set_xlabel('Price ($)')
+    ax.set_xlabel('Normalised Price (Divided by Market Price)')
     ax.set_ylabel('Normalised Quantity')
     plt.show()

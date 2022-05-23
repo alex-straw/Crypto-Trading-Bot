@@ -17,9 +17,7 @@ def clean_lob(_lob, middle_pct):
         """ Estimates the fair price by finding the middle of the bid-ask spread """
         return 0.5 * (asks[0] + bids[0])
 
-    def central_data(_lob, middle_pct):
-        market_price = estimate_fair_price(cleaned_lob['asks_prices'], cleaned_lob['bids_prices'])
-
+    def central_data(_lob, middle_pct, market_price):
         asks_cutoff_idx = next(x for x, val in enumerate(cleaned_lob['asks_prices']) if val > market_price*(1+middle_pct/2))
         bids_cutoff_idx = next(x for x, val in enumerate(cleaned_lob['bids_prices']) if val < market_price*(1-middle_pct/2))
 
@@ -41,6 +39,10 @@ def clean_lob(_lob, middle_pct):
 
         return cleaned_lob
 
+    def normalise_prices(cleaned_lob, market_price):
+        cleaned_lob['asks_prices'] = [x/market_price for x in cleaned_lob['asks_prices']]
+        cleaned_lob['bids_prices'] = [x/market_price for x in cleaned_lob['bids_prices']]
+        return cleaned_lob
 
     cleaned_lob = {
         'asks_prices': get_sub_array_items(_lob['asks'], position=0),
@@ -49,8 +51,11 @@ def clean_lob(_lob, middle_pct):
         'bids_cumsum_qtys': get_cumsum(get_sub_array_items(_lob['asks'], position=1))
     }
 
-    cleaned_lob = central_data(cleaned_lob, middle_pct)
+    market_price = estimate_fair_price(cleaned_lob['asks_prices'], cleaned_lob['bids_prices'])
+
+    cleaned_lob = central_data(cleaned_lob, middle_pct, market_price)
     cleaned_lob = normalise_lob_qtys(cleaned_lob)
+    cleaned_lob = normalise_prices(cleaned_lob, market_price)
 
     return cleaned_lob
 
