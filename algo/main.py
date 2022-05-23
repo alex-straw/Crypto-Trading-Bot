@@ -69,6 +69,7 @@ def main():
 
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
     cleaned_lob = clean_lob(lob, middle_pct=0.05)
+
     plot_lob.plot_limit_order_book(cleaned_lob)
 
 
