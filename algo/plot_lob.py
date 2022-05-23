@@ -11,5 +11,5 @@ def plot_limit_order_book(lob_dict):
     ax.legend()
     plt.title('Limit Order Book Plot')
     ax.set_xlabel('Price ($)')
-    ax.set_ylabel('Cumulative Quantity')
+    ax.set_ylabel('Normalised Quantity')
     plt.show()

@@ -31,6 +31,17 @@ def clean_lob(_lob, middle_pct):
 
         return cleaned_lob
 
+    def normalise_lob_qtys(cleaned_lob):
+        """ Divide cumulative quantities by the sum of all quantities - like a PDF """
+
+        total_qty = sum(cleaned_lob['asks_cumsum_qtys']) + sum(cleaned_lob['bids_cumsum_qtys'])
+
+        cleaned_lob['asks_cumsum_qtys'] = cleaned_lob['asks_cumsum_qtys'] / total_qty
+        cleaned_lob['bids_cumsum_qtys'] = cleaned_lob['bids_cumsum_qtys'] / total_qty
+
+        return cleaned_lob
+
+
     cleaned_lob = {
         'asks_prices': get_sub_array_items(_lob['asks'], position=0),
         'asks_cumsum_qtys': get_cumsum(get_sub_array_items(_lob['asks'], position=1)),
@@ -38,7 +49,10 @@ def clean_lob(_lob, middle_pct):
         'bids_cumsum_qtys': get_cumsum(get_sub_array_items(_lob['asks'], position=1))
     }
 
-    return central_data(cleaned_lob, middle_pct)
+    cleaned_lob = central_data(cleaned_lob, middle_pct)
+    cleaned_lob = normalise_lob_qtys(cleaned_lob)
+
+    return cleaned_lob
 
 
 def main():
@@ -49,9 +63,7 @@ def main():
     }
 
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
-
-    cleaned_lob = clean_lob(lob, middle_pct=0.1)
-
+    cleaned_lob = clean_lob(lob, middle_pct=0.05)
     plot_lob.plot_limit_order_book(cleaned_lob)
 
 
