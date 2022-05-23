@@ -61,23 +61,40 @@ def clean_lob(_lob, middle_pct):
 
 def get_curve_features(cleaned_lob, n_points_per_curve, middle_pct):
 
-    bids_bins = np.linspace(1, 1-(middle_pct/2)+0.01, n_points_per_curve)
-    asks_bins = np.linspace(1, 1+(middle_pct/2)-0.01, n_points_per_curve)
+    bids_bins = np.linspace(1-(middle_pct/2), 1, n_points_per_curve)
+    asks_bins = np.linspace(1+(middle_pct/2), 1, n_points_per_curve)
 
-    print(bids_bins)
+    bids_digitised = np.digitize(cleaned_lob['bids_prices'], bids_bins)
+    asks_digitised = np.digitize(cleaned_lob['asks_prices'], asks_bins)
 
-    feature_dict = {}
+    def get_bin_counts(digitised_array):
+        unique, counts = np.unique(digitised_array, return_counts=True)
+        return dict(zip(unique, counts))
 
-    for bid_pct in bids_bins:
-        bid_bin_idx = next(x for x, val in enumerate(cleaned_lob['bids_prices']) if val < bid_pct)
-        print(bid_bin_idx)
-        feature_dict[bid_pct] = cleaned_lob['bids_cumsum_qtys'][bid_bin_idx]
+    def get_indexes_from_counts(bin_counts):
+        for key in bin_counts:
+            if key != 1:
+                bin_counts[key] += bin_counts[key-1]
+        return bin_counts
 
-    for ask_pct in asks_bins:
-        ask_pct_idx = next(x for x, val in enumerate(cleaned_lob['bids_prices']) if val > ask_pct)
-        feature_dict[ask_pct] = cleaned_lob['asks_cumsum_qtys'][ask_pct_idx]
+    def get_bin_indexes(digitised_bins):
+        bin_count_dict = get_bin_counts(digitised_bins)
+        return get_indexes_from_counts(bin_count_dict)
 
-    return feature_dict
+    def get_quantity_by_bin(qty_vect, count_by_bin, bins):
+        qty_by_bin = {}
+        for key in count_by_bin:
+            qty_by_bin[bins[key]] = qty_vect[count_by_bin[key]]
+        return qty_by_bin
+
+    bid_bin_edges = get_bin_indexes(bids_digitised)
+    ask_bin_edges = get_bin_indexes(asks_digitised)
+
+    bid_features = get_quantity_by_bin(cleaned_lob['bids_cumsum_qtys'], bid_bin_edges, bids_bins)
+    ask_features = get_quantity_by_bin(cleaned_lob['asks_cumsum_qtys'], ask_bin_edges, asks_bins)
+
+    print(ask_features)
+    print(bid_features)
 
 
 def main():
@@ -95,7 +112,7 @@ def main():
 
     plot_lob.plot_limit_order_book(cleaned_lob)
 
-    # feature_dict = get_curve_features(cleaned_lob, n_points_per_curve, middle_pct)
+    get_curve_features(cleaned_lob, n_points_per_curve, middle_pct)
 
     # feature_dict[market_price] = market_price
 
