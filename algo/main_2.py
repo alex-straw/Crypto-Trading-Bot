@@ -1,4 +1,6 @@
 import cbpro_api
+import bisect_lob
+import numpy as np
 
 
 def get_market_price(lob):
@@ -28,6 +30,27 @@ def get_lob_data_dict(lob):
     return lob_dict
 
 
+def normalise_prices(lob_dict, market_price):
+    """ Normalise prices around the market price """
+    for order_type in ['bid', 'ask']:
+        lob_dict[f'{order_type}_prices'] = [price/market_price for price in lob_dict[f'{order_type}_prices']]
+
+    return lob_dict
+
+
+def get_lob_features(lob, market_price, lob_price_depth_percentage):
+    upper_price_thresh = market_price * (1+lob_price_depth_percentage)  # For asks
+    lower_price_thresh = market_price * (1-lob_price_depth_percentage)  # For bids
+
+    bid_points_of_interest = np.linspace()
+
+    for order_type in ['bid','ask']:
+
+        if ['bid']:
+            pass
+
+
+
 def main():
     api_request = {
         'product': 'BTC-USD',
@@ -45,10 +68,16 @@ def main():
 
     lob_price_depth_percentage = 0.05
 
-    upper_price_thresh = market_price * (1+lob_price_depth_percentage)  # For asks
-    lower_price_thresh = market_price * (1-lob_price_depth_percentage)  # For bids
-
     lob_dict = get_lob_data_dict(lob)
+
+    lob_dict = normalise_prices(lob_dict, market_price)
+
+    print(lob_dict['bid_prices'])
+
+    # Now going to get indexes for 5% above and 5% below.
+    # Begin with asks
+
+    # ask_features = get_lob_features(lob_dict, market_price, lob_price_depth_percentage)
 
 
 if __name__ == "__main__":
