@@ -80,17 +80,11 @@ def main():
         'level': 2
     }
 
-    # Want to define the shape of the LOB using discretely spaced points
-    # Issue: LOB doesn't have discrete bins
-
-    # Estimate how far to go up / down
-    # First handle asks as these are increasing
-
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
     market_price = get_market_price(lob)
 
     lob_price_depth_percentage = 0.1
-    num_points_per_side = 20
+    num_points_per_side = 50
 
     lob_dict = get_lob_data_dict(lob)
 
@@ -98,11 +92,6 @@ def main():
     lob_dict = add_cumsum_qtys(lob_dict)
 
     lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
-
-    # Now going to get indexes for 5% above and 5% below.
-    # Begin with asks
-
-    # ask_features = get_lob_features(lob_dict, market_price, lob_price_depth_percentage)
 
     plot_lob.plot_feature_lob(lob_points_of_interest)
 
