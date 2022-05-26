@@ -14,11 +14,21 @@ def main():
         'level': 2
     }
 
-    # Want to estimate the b
+    # Want to define the shape of the LOB using discretely spaced points
+    # Issue: LOB doesn't have discrete bins
+
+    # Estimate how far to go up / down
+    # First handle asks as these are increasing
 
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
-
     market_price = get_market_price(lob)
+
+    lob_price_depth_percentage = 0.05
+    upper_price_thresh = market_price * (1+lob_price_depth_percentage)  # For asks
+    lower_price_thresh = market_price * (1-lob_price_depth_percentage)  # For bids
+
+    upper_price = market_price
+
 
     print(market_price)
 
