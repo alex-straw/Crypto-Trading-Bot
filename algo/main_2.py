@@ -38,10 +38,14 @@ def normalise_prices(lob_dict, market_price):
     return lob_dict
 
 
-def add_cumulative_qtys(lob_dict):
-    """ Adds cumulative quantities to the LOB dictionary """
+def add_normalised_cumsum_qtys(lob_dict):
+    """ Adds normalised cumulative quantities to the LOB dictionary """
+
+    total_size = np.sum(lob_dict['bid_qtys']) + np.sum(lob_dict['ask_qtys'])
+
     for order_type in ['bid', 'ask']:
         lob_dict[f'{order_type}_cum_qtys'] = np.cumsum(lob_dict[f'{order_type}_qtys'])
+        lob_dict[f'{order_type}_norm_cum_qtys'] = lob_dict[f'{order_type}_cum_qtys'] / total_size
 
     return lob_dict
 
@@ -52,11 +56,10 @@ def get_lob_features(lob, market_price, lob_price_depth_percentage):
 
     bid_points_of_interest = np.linspace()
 
-    for order_type in ['bid','ask']:
+    for order_type in ['bid', 'ask']:
 
         if ['bid']:
             pass
-
 
 
 def main():
@@ -79,9 +82,10 @@ def main():
     lob_dict = get_lob_data_dict(lob)
 
     lob_dict = normalise_prices(lob_dict, market_price)
-    lob_dict = add_cumulative_qtys(lob_dict)
+    lob_dict = add_normalised_cumsum_qtys(lob_dict)
 
-    print(lob_dict['bid_cum_qtys'])
+    print(lob_dict['bid_norm_cum_qtys'])
+
 
     # Now going to get indexes for 5% above and 5% below.
     # Begin with asks
