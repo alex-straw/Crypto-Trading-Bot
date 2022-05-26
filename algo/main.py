@@ -38,14 +38,13 @@ def normalise_prices(lob_dict, market_price):
     return lob_dict
 
 
-def add_normalised_cumsum_qtys(lob_dict):
+def add_cumsum_qtys(lob_dict):
     """ Adds normalised cumulative quantities to the LOB dictionary """
 
     total_size = np.sum(lob_dict['bid_qtys']) + np.sum(lob_dict['ask_qtys'])
 
     for order_type in ['bid', 'ask']:
         lob_dict[f'{order_type}_cum_qtys'] = np.cumsum(lob_dict[f'{order_type}_qtys'])
-        lob_dict[f'{order_type}_norm_cum_qtys'] = lob_dict[f'{order_type}_cum_qtys'] / total_size
 
     return lob_dict
 
@@ -67,11 +66,11 @@ def get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side):
 
     for price in points_of_interest['ask']:
         idx = bisect_lob.find_closest_index(lob_dict['ask_prices'], price)
-        points_of_interest['ask_qtys'].append(lob_dict['ask_norm_cum_qtys'][idx])
+        points_of_interest['ask_qtys'].append(lob_dict['ask_cum_qtys'][idx])
 
     for price in points_of_interest['bid']:
         idx = bisect_lob.find_closest_index_rev(lob_dict['bid_prices'], price)
-        points_of_interest['bid_qtys'].append(lob_dict['bid_norm_cum_qtys'][idx])
+        points_of_interest['bid_qtys'].append(lob_dict['bid_cum_qtys'][idx])
 
     return points_of_interest
 
@@ -97,7 +96,7 @@ def main():
     lob_dict = get_lob_data_dict(lob)
 
     lob_dict = normalise_prices(lob_dict, market_price)
-    lob_dict = add_normalised_cumsum_qtys(lob_dict)
+    lob_dict = add_cumsum_qtys(lob_dict)
 
     lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
 
