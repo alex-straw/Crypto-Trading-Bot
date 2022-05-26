@@ -36,4 +36,4 @@ def plot_feature_lob(feature_dict):
     plt.title('Limit Order Book Plot')
     ax.set_xlabel('Normalised Price (Divided by Market Price)')
     ax.set_ylabel('Normalised Quantity')
-    plt.show()
+    plt.savefig('output_images/feature_plot_lob.png')

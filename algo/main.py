@@ -2,6 +2,8 @@ import cbpro_api
 import bisect_lob
 import numpy as np
 import plot_lob
+import time
+import pandas as pd
 
 
 def get_market_price(lob):
@@ -74,17 +76,40 @@ def get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side):
     return points_of_interest
 
 
+def format_features_for_data_frame(lob_points_of_interest, market_price, call_time):
+    """
+    Adds a key for each different linearly spaced bid/ask point and its respective quantity.
+    Market price and call_time have also been added for labelling purposes.
+    """
+    formatted_dict = {}
+
+    for order_type in ['bid', 'ask']:
+        for feature_idx in range(len(lob_points_of_interest[order_type])):
+            normalised_price = lob_points_of_interest[order_type][feature_idx]
+            quantity = lob_points_of_interest[f'{order_type}_qtys'][feature_idx]
+            formatted_dict[f'{order_type}_{normalised_price}'] = quantity
+
+    formatted_dict['market_price'] = market_price
+    formatted_dict['time'] = call_time
+
+    return formatted_dict
+
+
 def main():
+
+    collected_lob_data = pd.DataFrame()
+
     api_request = {
         'product': 'BTC-USD',
         'level': 2
     }
 
+    call_time = time.time()
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
     market_price = get_market_price(lob)
 
     lob_price_depth_percentage = 0.1
-    num_points_per_side = 50
+    num_points_per_side = 20
 
     lob_dict = get_lob_data_dict(lob)
 
@@ -92,8 +117,13 @@ def main():
     lob_dict = add_cumsum_qtys(lob_dict)
 
     lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
+    formatted_dict = format_features_for_data_frame(lob_points_of_interest, market_price, call_time)
 
     plot_lob.plot_feature_lob(lob_points_of_interest)
+
+    collected_lob_data = collected_lob_data.append(formatted_dict, ignore_index=True)
+
+    collected_lob_data.to_csv('output_data/BTC-USD_data.csv')
 
 
 if __name__ == "__main__":
