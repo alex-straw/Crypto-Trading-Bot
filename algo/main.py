@@ -1,6 +1,7 @@
 import cbpro_api
 import bisect_lob
 import numpy as np
+import plot_lob
 
 
 def get_market_price(lob):
@@ -40,9 +41,7 @@ def normalise_prices(lob_dict, market_price):
 
 def add_cumsum_qtys(lob_dict):
     """ Adds normalised cumulative quantities to the LOB dictionary """
-
-    total_size = np.sum(lob_dict['bid_qtys']) + np.sum(lob_dict['ask_qtys'])
-
+    
     for order_type in ['bid', 'ask']:
         lob_dict[f'{order_type}_cum_qtys'] = np.cumsum(lob_dict[f'{order_type}_qtys'])
 
@@ -100,13 +99,12 @@ def main():
 
     lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
 
-    print(lob_points_of_interest['ask_qtys'])
-
     # Now going to get indexes for 5% above and 5% below.
     # Begin with asks
 
     # ask_features = get_lob_features(lob_dict, market_price, lob_price_depth_percentage)
 
+    plot_lob.plot_limit_order_book(lob_dict)
 
 if __name__ == "__main__":
     main()
