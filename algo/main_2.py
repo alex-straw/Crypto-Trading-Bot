@@ -8,6 +8,26 @@ def get_market_price(lob):
     return (best_bid+best_ask)/2
 
 
+def get_lob_data_dict(lob):
+    """
+    Original format for lob is many arrays: [[Price_1, Qty_1, Type],...,[Price_n, Qty_n, Type_n]]
+
+    This function uses list comprehensions to extract arrays of prices and quantities to make data manipulation
+    easier
+    """
+    def get_array(lob, side, position):
+        return [float(sub_array[position]) for sub_array in lob[side]]
+
+    lob_dict = {
+        'bid_prices': get_array(lob, 'bids', position=0),
+        'ask_prices': get_array(lob, 'asks', position=0),
+        'bid_qtys': get_array(lob, 'bids', position=1),
+        'ask_qtys': get_array(lob, 'bids', position=1)
+    }
+
+    return lob_dict
+
+
 def main():
     api_request = {
         'product': 'BTC-USD',
@@ -24,13 +44,11 @@ def main():
     market_price = get_market_price(lob)
 
     lob_price_depth_percentage = 0.05
+
     upper_price_thresh = market_price * (1+lob_price_depth_percentage)  # For asks
     lower_price_thresh = market_price * (1-lob_price_depth_percentage)  # For bids
 
-    upper_price = market_price
-
-
-    print(market_price)
+    lob_dict = get_lob_data_dict(lob)
 
 
 if __name__ == "__main__":
