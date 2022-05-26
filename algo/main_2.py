@@ -50,16 +50,30 @@ def add_normalised_cumsum_qtys(lob_dict):
     return lob_dict
 
 
-def get_lob_features(lob, market_price, lob_price_depth_percentage):
-    upper_price_thresh = market_price * (1+lob_price_depth_percentage)  # For asks
-    lower_price_thresh = market_price * (1-lob_price_depth_percentage)  # For bids
+def get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side):
+    """
+    Generates a linear set of points from the normalised market price : 1, to a certain percentage above
+    and below. In this case, 5% above and 5% below. The LOB is bisected up and down to find the closest index
+    to the associated normalised price. The corresponding cumulative normalised quantity is then found using
+    that index and stored in the points of interest array. This allows
+    """
 
-    bid_points_of_interest = np.linspace()
+    points_of_interest = {
+        'bid': np.linspace(1, 1-lob_price_depth_percentage, num_points_per_side),
+        'ask': np.linspace(1, 1+lob_price_depth_percentage, num_points_per_side),
+        'bid_qtys': [],
+        'ask_qtys': []
+    }
 
-    for order_type in ['bid', 'ask']:
+    for price in points_of_interest['ask']:
+        idx = bisect_lob.find_closest_index(lob_dict['ask_prices'], price)
+        points_of_interest['ask_qtys'].append(lob_dict['ask_norm_cum_qtys'][idx])
 
-        if ['bid']:
-            pass
+    for price in points_of_interest['bid']:
+        idx = bisect_lob.find_closest_index_rev(lob_dict['bid_prices'], price)
+        points_of_interest['bid_qtys'].append(lob_dict['bid_norm_cum_qtys'][idx])
+
+    return points_of_interest
 
 
 def main():
@@ -77,15 +91,17 @@ def main():
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
     market_price = get_market_price(lob)
 
-    lob_price_depth_percentage = 0.05
+    lob_price_depth_percentage = 0.1
+    num_points_per_side = 20
 
     lob_dict = get_lob_data_dict(lob)
 
     lob_dict = normalise_prices(lob_dict, market_price)
     lob_dict = add_normalised_cumsum_qtys(lob_dict)
 
-    print(lob_dict['bid_norm_cum_qtys'])
+    lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
 
+    print(lob_points_of_interest['ask_qtys'])
 
     # Now going to get indexes for 5% above and 5% below.
     # Begin with asks
