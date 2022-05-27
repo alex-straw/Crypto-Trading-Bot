@@ -146,8 +146,8 @@ def main():
         'lob_level': 2,
         'lob_price_depth_percentage': 0.1,
         'num_points_per_side': 20,
-        'api_call_interval': 2,
-        'n_api_calls': 4
+        'api_call_interval': 5,
+        'n_api_calls': 100
     }
 
     gather_data(parameters)
