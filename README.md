@@ -12,7 +12,7 @@ Idea:
   + LOB tells us in the short term what investors are thinking:
     + Is there a large sell wall close to the market price?
     + Have a lot of bids been placed in the last 30 seconds?
-    + Were there lots of cancellations made?
+    + Were lots of cancellations just made on a particular side?
   + On short enough time frames can this be used to quickly enter and exit trades?
 
 Learning Phase:
