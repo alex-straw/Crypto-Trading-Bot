@@ -4,7 +4,7 @@ import numpy as np
 import plot_lob
 import time
 import pandas as pd
-
+import sys
 
 def get_market_price(lob):
     """ Midpoint of bid-ask spread """
@@ -99,6 +99,10 @@ def format_features_for_data_frame(lob_points_of_interest, market_price, call_ti
 def retrieve_market_data(api_request, depth_percentage, feature_points_per_side):
     call_time = time.time()
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
+
+    if not lob:
+        return False
+
     market_price = get_market_price(lob)
 
     lob_dict = get_lob_data_dict(lob)
@@ -125,16 +129,21 @@ def gather_data(parameters):
     start_time = time.time()
 
     for request in range(1, parameters['n_api_calls']+1):
-        print('{request} / {n}'.format(request=request, n=parameters['n_api_calls']))
 
         formatted_dict = retrieve_market_data(
             api_request,
             parameters['lob_price_depth_percentage'],
             parameters['num_points_per_side'])
 
+        if not formatted_dict:
+            collected_lob_data.to_csv('output_data/{product}_connection_fail_data.csv'.format(product=parameters['product']))
+            sys.exit("Cannot retrieve data from Coinbase Pro API. Collected data has been saved.")
+
         collected_lob_data = collected_lob_data.append(formatted_dict, ignore_index=True)
 
+        print('{request} / {n}'.format(request=request, n=parameters['n_api_calls']))
         time.sleep(parameters['api_call_interval'] - ((time.time() - start_time) % parameters['api_call_interval']))
+
 
     collected_lob_data.to_csv('output_data/{product}_data.csv'.format(product=parameters['product']))
 
@@ -147,7 +156,7 @@ def main():
         'lob_price_depth_percentage': 0.1,
         'num_points_per_side': 20,
         'api_call_interval': 5,
-        'n_api_calls': 1000
+        'n_api_calls': 250
     }
 
     gather_data(parameters)
