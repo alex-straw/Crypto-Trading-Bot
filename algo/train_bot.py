@@ -37,7 +37,7 @@ def get_train_test_split(train_size, df):
 
 
 def plot_model(y_test_pred, y_test_true, model):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     time_data = y_test_true.index
 
@@ -50,7 +50,7 @@ def plot_model(y_test_pred, y_test_true, model):
     ax.set_xlabel('Time')
     ax.set_ylabel('Change (%)')
     plt.title(model)
-    plt.show()
+    plt.savefig(f'output_images/{model}.png')
 
 
 def main():
