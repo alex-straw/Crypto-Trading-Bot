@@ -1,11 +1,13 @@
 import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'
 from numpy import concatenate
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from datetime import datetime
+from sklearn.tree import DecisionTreeRegressor
+
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def add_future_price(df, n_steps_ahead):
@@ -37,7 +39,7 @@ def get_train_test_split(train_size, df):
 
 
 def plot_model(y_test_pred, y_test_true, model):
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(20, 6))
 
     time_data = y_test_true.index
 
@@ -58,14 +60,14 @@ def main():
     train_size = 0.8
     n_steps_ahead = 6
 
-    feature_df = pd.read_csv('output_data/BTC-USD_data.csv')
+    feature_df = pd.read_csv('output_data/saved_data/BTC-USD-700.csv')
     feature_df = feature_df.drop(feature_df.columns[0], axis=1)  # Drop original index column
     feature_df['time'] = pd.to_datetime(feature_df['time'], unit='s')
     feature_df.set_index('time', inplace=True, drop=True)
 
     feature_df = add_future_price(feature_df, n_steps_ahead)
 
-    test, train = get_train_test_split(train_size, feature_df)
+    train, test = get_train_test_split(train_size, feature_df)
 
     x_data_train, y_data_train = get_x_y(train)
     x_data_test, y_data_test = get_x_y(test)
@@ -74,6 +76,7 @@ def main():
 
     y_data_pred = linear_reg_model.predict(x_data_test)
 
+    print(mean_squared_error(y_data_pred, y_data_test))
     plot_model(y_data_pred, y_data_test, 'Linear Regression')
 
 
