@@ -10,7 +10,7 @@ def get_market_price(lob):
     """ Midpoint of bid-ask spread """
     best_ask = float(lob['asks'][0][0])
     best_bid = float(lob['bids'][0][0])
-    return (best_bid+best_ask)/2
+    return (best_bid + best_ask) / 2
 
 
 def get_lob_data_dict(lob):
@@ -20,6 +20,7 @@ def get_lob_data_dict(lob):
     This function uses list comprehensions to extract arrays of prices and quantities to make data manipulation
     easier
     """
+
     def get_array(lob, side, position):
         return [float(sub_array[position]) for sub_array in lob[side]]
 
@@ -36,7 +37,7 @@ def get_lob_data_dict(lob):
 def normalise_prices(lob_dict, market_price):
     """ Normalise prices around the market price """
     for order_type in ['bid', 'ask']:
-        lob_dict[f'{order_type}_prices'] = [price/market_price for price in lob_dict[f'{order_type}_prices']]
+        lob_dict[f'{order_type}_prices'] = [price / market_price for price in lob_dict[f'{order_type}_prices']]
 
     return lob_dict
 
@@ -59,8 +60,8 @@ def get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side):
     """
 
     points_of_interest = {
-        'bid': np.linspace(1, 1-lob_price_depth_percentage, num_points_per_side),
-        'ask': np.linspace(1, 1+lob_price_depth_percentage, num_points_per_side),
+        'bid': np.linspace(1, 1 - lob_price_depth_percentage, num_points_per_side),
+        'ask': np.linspace(1, 1 + lob_price_depth_percentage, num_points_per_side),
         'bid_qtys': [],
         'ask_qtys': []
     }
@@ -95,35 +96,61 @@ def format_features_for_data_frame(lob_points_of_interest, market_price, call_ti
     return formatted_dict
 
 
-def main():
-
-    collected_lob_data = pd.DataFrame()
-
-    api_request = {
-        'product': 'BTC-USD',
-        'level': 2
-    }
-
+def retrieve_market_data(api_request, depth_percentage, feature_points_per_side):
     call_time = time.time()
     lob = cbpro_api.get_lob(api_request['product'], api_request['level'])
     market_price = get_market_price(lob)
-
-    lob_price_depth_percentage = 0.1
-    num_points_per_side = 20
 
     lob_dict = get_lob_data_dict(lob)
 
     lob_dict = normalise_prices(lob_dict, market_price)
     lob_dict = add_cumsum_qtys(lob_dict)
 
-    lob_points_of_interest = get_lob_features(lob_dict, lob_price_depth_percentage, num_points_per_side)
+    lob_points_of_interest = get_lob_features(lob_dict, depth_percentage, feature_points_per_side)
     formatted_dict = format_features_for_data_frame(lob_points_of_interest, market_price, call_time)
 
-    plot_lob.plot_feature_lob(lob_points_of_interest)
+    # plot_lob.plot_feature_lob(lob_points_of_interest)
 
-    collected_lob_data = collected_lob_data.append(formatted_dict, ignore_index=True)
+    return formatted_dict
 
-    collected_lob_data.to_csv('output_data/BTC-USD_data.csv')
+
+def gather_data(parameters):
+
+    api_request = {
+        'product': parameters['product'],
+        'level': parameters['lob_level']
+    }
+
+    collected_lob_data = pd.DataFrame()
+    start_time = time.time()
+
+    for request in range(1, parameters['n_api_calls']+1):
+        print('{request} / {n}'.format(request=request, n=parameters['n_api_calls']))
+
+        formatted_dict = retrieve_market_data(
+            api_request,
+            parameters['lob_price_depth_percentage'],
+            parameters['num_points_per_side'])
+
+        collected_lob_data = collected_lob_data.append(formatted_dict, ignore_index=True)
+
+        time.sleep(parameters['api_call_interval'] - ((time.time() - start_time) % parameters['api_call_interval']))
+
+    collected_lob_data.to_csv('output_data/{product}_data.csv'.format(product=parameters['product']))
+
+
+def main():
+
+    parameters = {
+        'product': 'BTC-USD',
+        'lob_level': 2,
+        'lob_price_depth_percentage': 0.1,
+        'num_points_per_side': 20,
+        'api_call_interval': 2,
+        'n_api_calls': 4
+    }
+
+    gather_data(parameters)
 
 
 if __name__ == "__main__":
