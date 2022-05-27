@@ -6,6 +6,7 @@ import time
 import pandas as pd
 import sys
 
+
 def get_market_price(lob):
     """ Midpoint of bid-ask spread """
     best_ask = float(lob['asks'][0][0])
@@ -144,7 +145,6 @@ def gather_data(parameters):
         print('{request} / {n}'.format(request=request, n=parameters['n_api_calls']))
         time.sleep(parameters['api_call_interval'] - ((time.time() - start_time) % parameters['api_call_interval']))
 
-
     collected_lob_data.to_csv('output_data/{product}_data.csv'.format(product=parameters['product']))
 
 
@@ -156,7 +156,7 @@ def main():
         'lob_price_depth_percentage': 0.1,
         'num_points_per_side': 20,
         'api_call_interval': 5,
-        'n_api_calls': 250
+        'n_api_calls': 1000
     }
 
     gather_data(parameters)
