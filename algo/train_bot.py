@@ -38,22 +38,33 @@ def get_train_test_split(train_size, df):
     return train, test
 
 
-def plot_model(y_test_pred, y_test_true, model):
+def plot_model(y_test_pred, y_test_true, model, n_steps_ahead):
     fig, ax = plt.subplots(figsize=(20, 6))
 
+    interval = 5
     time_data = y_test_true.index
 
-    datapoint_index = range(0, len(time_data))
+    total_time = len(time_data)*interval
 
-    ax.plot(datapoint_index, y_test_pred, label='predicted change over next 30 seconds')
-    ax.plot(datapoint_index, y_test_true, label='actual change over next 30 seconds')
+    market_price_indices = range(0, total_time, interval)
+
+    x = np.linspace(0, total_time, 5)
+    y = [0] * x.shape[0]
+
+    ax.plot(market_price_indices, y_test_pred, label='Predicted price change over next 30 seconds')
+    ax.plot(market_price_indices, y_test_true, label='Actual price change over next 30 seconds')
+    ax.plot(x, y, color='red')
     ax.grid()
     ax.legend()
-    ax.set_xlabel('Time')
+    ax.set_xlabel('Time (Seconds)')
     ax.set_ylabel('Change (%)')
+    plt.xticks(range(0, len(time_data)*interval, interval*n_steps_ahead))
     plt.title(model)
     plt.savefig(f'output_images/{model}.png')
 
+
+def convert_percent_change_to_price(market_price, y_pct_changes):
+    return (1+y_pct_changes)*market_price
 
 def main():
 
@@ -76,8 +87,10 @@ def main():
 
     y_data_pred = linear_reg_model.predict(x_data_test)
 
+    market_prices = test['market_price']
+
     print(mean_squared_error(y_data_pred, y_data_test))
-    plot_model(y_data_pred, y_data_test, 'Linear Regression')
+    plot_model(y_data_pred, y_data_test, 'Linear Regression', n_steps_ahead)
 
 
 if __name__ == "__main__":
