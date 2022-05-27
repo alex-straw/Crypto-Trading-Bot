@@ -53,6 +53,7 @@ def plot_model(y_test_pred, y_test_true, model, n_steps_ahead):
 
     ax.plot(market_price_indices, y_test_pred, label='Predicted price change over next 30 seconds')
     ax.plot(market_price_indices, y_test_true, label='Actual price change over next 30 seconds')
+
     ax.plot(x, y, color='red')
     ax.grid()
     ax.legend()
@@ -63,13 +64,29 @@ def plot_model(y_test_pred, y_test_true, model, n_steps_ahead):
     plt.savefig(f'output_images/{model}.png')
 
 
-def convert_percent_change_to_price(market_price, y_pct_changes):
-    return (1+y_pct_changes)*market_price
+def max_depth_testing(x_data_train, y_data_train, x_data_val, y_data_val):
+
+    results = {
+        'depth_values': range(1, 20),
+        'error': []
+    }
+
+    for depth in results['depth_values']:
+        dtr_model = DecisionTreeRegressor(max_depth=depth).fit(x_data_train, y_data_train)
+        y_pred_val = dtr_model.predict(x_data_val)
+        results['error'].append(mean_squared_error(y_pred_val, y_data_val, squared=False))
+
+    fig, ax = plt.subplots()
+    ax.plot(results['depth_values'], results['error'])
+    ax.set_xlabel('max depth')
+    ax.set_ylabel('MSE')
+    plt.show()
+
 
 def main():
 
     train_size = 0.8
-    n_steps_ahead = 6
+    n_steps_ahead = 10
 
     feature_df = pd.read_csv('output_data/saved_data/BTC-USD-700.csv')
     feature_df = feature_df.drop(feature_df.columns[0], axis=1)  # Drop original index column
@@ -79,18 +96,22 @@ def main():
     feature_df = add_future_price(feature_df, n_steps_ahead)
 
     train, test = get_train_test_split(train_size, feature_df)
+    train, val = get_train_test_split(train_size, train)
 
     x_data_train, y_data_train = get_x_y(train)
     x_data_test, y_data_test = get_x_y(test)
+    x_data_val, y_data_val = get_x_y(val)
 
     linear_reg_model = LinearRegression().fit(x_data_train, y_data_train)
+    dtr_model = DecisionTreeRegressor(max_depth=6).fit(x_data_train, y_data_train)
+
+    max_depth_testing(x_data_train, y_data_train, x_data_val, y_data_val)  # Best turned out to be 6
 
     y_data_pred = linear_reg_model.predict(x_data_test)
+    y_data_pred_dtr = dtr_model.predict(x_data_test)
 
-    market_prices = test['market_price']
-
-    print(mean_squared_error(y_data_pred, y_data_test))
     plot_model(y_data_pred, y_data_test, 'Linear Regression', n_steps_ahead)
+    plot_model(y_data_pred_dtr, y_data_test, 'Decision Tree Regression', n_steps_ahead)
 
 
 if __name__ == "__main__":
