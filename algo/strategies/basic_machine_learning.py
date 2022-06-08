@@ -61,7 +61,7 @@ def plot_model(y_test_pred, y_test_true, model, n_steps_ahead):
     ax.set_ylabel('Change (%)')
     plt.xticks(range(0, len(time_data)*interval, interval*n_steps_ahead))
     plt.title(model)
-    plt.savefig(f'output_images/{model}.png')
+    plt.savefig(f'../output_images/{model}.png')
 
 
 def max_depth_testing(x_data_train, y_data_train, x_data_val, y_data_val):
@@ -88,7 +88,7 @@ def main():
     train_size = 0.8
     n_steps_ahead = 10
 
-    feature_df = pd.read_csv('output_data/saved_data/BTC-USD-700.csv')
+    feature_df = pd.read_csv('../output_data/BTC-USD_data.csv')
     feature_df = feature_df.drop(feature_df.columns[0], axis=1)  # Drop original index column
     feature_df['time'] = pd.to_datetime(feature_df['time'], unit='s')
     feature_df.set_index('time', inplace=True, drop=True)
@@ -110,8 +110,8 @@ def main():
     y_data_pred = linear_reg_model.predict(x_data_test)
     y_data_pred_dtr = dtr_model.predict(x_data_test)
 
-    plot_model(y_data_pred, y_data_test, 'Linear Regression', n_steps_ahead)
-    plot_model(y_data_pred_dtr, y_data_test, 'Decision Tree Regression', n_steps_ahead)
+    plot_model(y_data_pred, y_data_test, 'linear_regression', n_steps_ahead)
+    plot_model(y_data_pred_dtr, y_data_test, 'linear_regression', n_steps_ahead)
 
 
 if __name__ == "__main__":
